@@ -109,7 +109,7 @@ export const Obj: React.FC<{name: string; from?: number; n: number; ext?: 'webp'
 };
 
 // framed photo with tape (collage style from the reference)
-export const Card: React.FC<{name: string; n: number; from?: number; rate?: number; t: number; cx: number; cy: number; w: number; h: number; rot?: number}> = ({name, n, from = 1, rate = 1, t, cx, cy, w, h, rot = -4}) => {
+export const Card: React.FC<{name: string; n: number; from?: number; rate?: number; t: number; cx: number; cy: number; w: number; h: number; rot?: number; zoom?: number; origin?: string}> = ({name, n, from = 1, rate = 1, t, cx, cy, w, h, rot = -4, zoom = 1, origin = '50% 50%'}) => {
   const at = useAt(t);
   const sp = spring({frame: at, fps: FPS, config: {damping: 12, stiffness: 130, mass: 0.7}});
   const idx = Math.min(n, Math.max(1, from + Math.floor(Math.max(0, at) * rate * (24 / 25))));
@@ -117,7 +117,7 @@ export const Card: React.FC<{name: string; n: number; from?: number; rate?: numb
   return (
     <div style={{position: 'absolute', left: cx - w / 2, top: cy - h / 2, width: w, height: h, opacity: Math.min(1, sp * 2), transform: `scale(${0.6 + 0.4 * sp}) rotate(${rot + (1 - sp) * 14}deg)`}}>
       <div style={{position: 'absolute', inset: 0, background: '#F6F6FB', padding: 16, boxShadow: '0 40px 50px rgba(24,32,100,.45)'}}>
-        <Img src={staticFile(`seq/${name}/${pad(idx)}.jpg`)} style={{width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(.15) contrast(1.05)'}} />
+        <div style={{width: '100%', height: '100%', overflow: 'hidden'}}><Img src={staticFile(`seq/${name}/${pad(idx)}.jpg`)} style={{width: '100%', height: '100%', objectFit: 'cover', transform: `scale(${zoom})`, transformOrigin: origin, filter: 'grayscale(.15) contrast(1.05)'}} /></div>
       </div>
       <div style={tape(-50, -14, -36)} />
       <div style={tape(w - 100, h - 30, -34)} />

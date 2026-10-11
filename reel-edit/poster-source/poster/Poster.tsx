@@ -38,14 +38,14 @@ const punchAt = (f: number) => {
   const k = easeOut(interpolate(now, [p.s - 0.05, p.s + 0.18], [0, 1], clamp));
   return prev + (PUNCH[i] - prev) * k;
 };
-export const PRES = {scale: 1.2, ox: 540, oy: 1470, dy: 500};
+export const PRES = {scale: 1.2, ox: 540, oy: 1470, dy: 590};
 const Presenter: React.FC = () => {
   const f = useCurrentFrame();
   const idx = Math.min(656, f + 1);
   const z = punchAt(f);
   return (
     <div style={{position: 'absolute', inset: 0, transformOrigin: `${PRES.ox}px 1920px`, transform: `scale(${z})`}}>
-      <Img src={staticFile(`seq/${process.env.REMOTION_PNAME ?? 'P'}/${String(idx).padStart(4, '0')}.webp`)} style={{position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, transformOrigin: `${PRES.ox}px ${PRES.oy}px`, transform: `translateY(${PRES.dy}px) scale(${PRES.scale})`, filter: 'drop-shadow(0 -6px 30px rgba(20,28,110,.45)) saturate(1.05) contrast(1.04)'}} />
+      <Img src={staticFile(`seq/${process.env.REMOTION_PNAME ?? 'P2'}/${String(idx).padStart(4, '0')}.webp`)} style={{position: 'absolute', left: 0, top: 0, width: 1080, height: 1920, transformOrigin: `${PRES.ox}px ${PRES.oy}px`, transform: `translateY(${PRES.dy}px) scale(${PRES.scale})`, filter: 'drop-shadow(0 -6px 30px rgba(20,28,110,.45)) saturate(1.05) contrast(1.04)'}} />
     </div>
   );
 };
@@ -72,17 +72,16 @@ export const Poster: React.FC = () => {
 
       {/* S2 jeb par bhaari */}
       <Scene from={2.7} to={4.3}>
-        <Obj name="C2" from={8} n={52} cx={290} cy={470} ax={0.38} ay={0.25} scale={1.2} t={2.74} float={6} />
+        <Card name="C2c" n={70} from={20} cx={300} cy={540} w={470} h={680} rot={-5} t={2.74} zoom={1.12} origin="50% 40%" />
         <Txt t={W(1, 0)} txt="yeh" k="small" x={524} y={190} s={50} />
         <Txt t={W(1, 1)} txt="jeb par" k="big" x={520} y={225} s={150} />
         <Txt t={W(1, 3)} txt="bahut" k="small" x={504} y={392} s={50} />
         <Txt t={W(1, 4)} txt="bhaari" k="big" x={500} y={430} s={190} color={RED} />
-        <Loop t={3.0} cx={330} cy={640} rx={250} ry={200} rot={18} />
       </Scene>
 
       {/* S3 margin */}
       <Scene from={4.34} to={7.4}>
-        <Obj name="A4" n={72} cx={770} cy={520} ax={0.5} ay={0.38} scale={0.76} t={4.33} />
+        <Card name="A4c" n={72} cx={790} cy={510} w={440} h={700} rot={4} t={4.33} zoom={1.35} origin="50% 42%" />
         <Txt t={W(2, 0)} txt="dukandaar" k="big" x={50} y={150} s={120} />
         <Txt t={W(2, 1)} txt="wahi" k="small" x={58} y={262} s={50} />
         <Txt t={W(2, 2)} txt="brand" k="big" x={50} y={290} s={185} />
@@ -106,7 +105,7 @@ export const Poster: React.FC = () => {
 
       {/* S4a eentey */}
       <Scene from={9.18} to={10.1}>
-        <Obj name="C1" n={26} cx={680} cy={560} ax={0.45} ay={0.5} scale={0.8} t={9.22} float={4} />
+        <Card name="C1c" n={40} cx={720} cy={540} w={460} h={660} rot={3} t={9.22} />
         <Txt t={W(5, 0)} txt="baad mein" k="small" x={58} y={200} s={52} />
         <Txt t={W(5, 2)} txt="eentey" k="big" x={50} y={235} s={200} />
       </Scene>
@@ -118,7 +117,7 @@ export const Poster: React.FC = () => {
       </Scene>
       {/* S4c mistri */}
       <Scene from={10.86} to={12.1}>
-        <Obj name="B5" n={32} cx={380} cy={620} ax={0.45} ay={0.5} scale={1.25} t={10.88} />
+        <Card name="B5c" n={40} cx={320} cy={560} w={470} h={660} rot={-4} t={10.88} zoom={1.2} origin="45% 62%" />
         <Txt t={W(5, 5)} txt="aur" k="small" x={560} y={170} s={50} />
         <Txt t={W(5, 6)} txt="mistri" k="big" x={540} y={200} s={175} />
         <Txt t={W(5, 7)} txt="kaam" k="small" x={560} y={400} s={50} />
@@ -128,7 +127,7 @@ export const Poster: React.FC = () => {
 
       {/* S5 galat cement */}
       <Scene from={12.14} to={13.78}>
-        <Obj name="B3" n={36} cx={680} cy={620} ax={0.52} ay={0.52} scale={1.5} t={12.16} />
+        <Card name="B3c" n={60} cx={730} cy={560} w={430} h={700} rot={4} t={12.16} zoom={1.5} origin="45% 64%" />
         <Txt t={W(6, 0)} txt="ek client ne" k="small" x={58} y={170} s={52} />
         <Txt t={W(6, 3)} txt="galat" k="big" x={50} y={205} s={235} color={RED} />
         <Txt t={W(6, 4)} txt="cement" k="big" x={50} y={430} s={150} />
@@ -166,12 +165,12 @@ export const Poster: React.FC = () => {
 
       {/* S9 sahi maal sahi rate */}
       <Scene from={20.92} to={22.38}>
-        <Obj name="B4" n={48} cx={830} cy={640} ay={0.55} scale={0.85} t={20.93} fadeBottom />
+        <Card name="B4c" n={48} cx={800} cy={560} w={400} h={640} rot={3} t={20.93} zoom={1.5} origin="50% 58%" />
         <Txt t={W(10, 0)} txt="sahi" k="big" x={50} y={170} s={190} />
         <Txt t={W(10, 1)} txt="maal" k="big" x={50} y={360} s={190} />
-        <Txt t={W(10, 3)} txt="sahi rate" k="big" x={50} y={610} s={150} color="#16A34A" />
+        <Txt t={W(10, 3)} txt="sahi rate" k="big" x={50} y={610} s={130} color="#16A34A" />
         <Check t={W(10, 1) + 0.1} x={470} y={330} />
-        <Check t={W(10, 4) + 0.1} x={560} y={620} />
+        <Check t={W(10, 4) + 0.1} x={470} y={740} />
       </Scene>
 
       {/* S10 comment */}
