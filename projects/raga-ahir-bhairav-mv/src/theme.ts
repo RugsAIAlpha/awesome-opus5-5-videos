@@ -19,7 +19,7 @@ const face = (
 
 face("Cormorant Garamond", "cormorant.woff2", "300 700");
 face("Cormorant Garamond", "cormorant-italic.woff2", "500", "italic");
-face("Cinzel", "cinzel.woff2", "500");
+face("Cinzel", "cinzel.woff2", "400 900");
 face(
   "Tiro Devanagari Hindi",
   "tiro-devanagari.woff2",

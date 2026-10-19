@@ -4,20 +4,20 @@ export const W = 1080;
 export const H = 1920;
 export const TOTAL = 6941; // 231.39 s
 
-export const T = {
-  // 0 – 82.6 s: the source holds a single still portrait
-  portraitEnd: 2479,
-  // 82.6 – 92.6 s: still title card, then the source cross-dissolves into the live footage
-  videoStart: 2760,
-  dissolveInStart: 2778,
-  dissolveInEnd: 2820,
-  // 213.5 – 214.5 s: the source dissolves back to the title card for the outro
-  dissolveOutStart: 6405,
-  dissolveOutEnd: 6435,
-  videoEnd: 6441,
-  endCard: 6790,
-};
+// Fully generated 3D scenes replace the source's two still images (0 – 94 s and 213.5 s – end).
+// The live footage runs in between; flashes at its edges hide the source's own dissolves.
+export const SCENES = {
+  cosmos: [0, 420],
+  mandala: [420, 1020],
+  terrain: [1020, 1560],
+  helix: [1560, 2100],
+  ocean: [2100, 2479],
+  tunnel: [2479, 2820],
+  live: [2820, 6405],
+  outro: [6405, TOTAL],
+} as const;
 
-// Title-card artwork landmarks, in 1080×1920 image coordinates
-export const SUN = { x: 540, y: 864 };
-export const MOON = { x: 924, y: 580 };
+// Scene cuts, each hidden under a light flash
+export const CUTS = [420, 1020, 1560, 2100, 2479, 2820, 6405];
+
+export const LETTERBOX = 96;

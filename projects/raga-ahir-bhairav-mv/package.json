@@ -9,12 +9,18 @@
   },
   "private": true,
   "dependencies": {
+    "@react-three/fiber": "^9.8.2",
+    "@react-three/postprocessing": "^3.2.1",
     "@remotion/cli": "4.0.537",
     "@remotion/fonts": "4.0.537",
     "@remotion/media": "4.0.537",
+    "@remotion/three": "4.0.537",
+    "@types/three": "^0.169.0",
+    "postprocessing": "^6.39.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "remotion": "4.0.537"
+    "remotion": "4.0.537",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.537",

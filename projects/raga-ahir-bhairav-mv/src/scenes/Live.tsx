@@ -1,436 +1,270 @@
-import React from "react";
 import { Video } from "@remotion/media";
-import {
-  AbsoluteFill,
-  Easing,
-  random,
-  Sequence,
-  staticFile,
-  useCurrentFrame,
-} from "remotion";
-import { bandsAt, rmsAt } from "../audio";
-import {
-  Dust,
-  Letters,
-  Mandala,
-  Reveal,
-  Rule,
-  TanpuraStrings,
-  Vignette,
-  Wipe,
-} from "../fx";
-import { CAPS, CREAM, DEVA, GOLD, SERIF, SHADOW, tween } from "../theme";
-import { T, W, H } from "../timeline";
-import { Swara, SWARAS } from "./Portrait";
+import React from "react";
+import { AbsoluteFill, random, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { bandsAt, kickAt, peaksBetween, rmsAt } from "../audio";
+import { AnamorphicFlare, CaptionBlock, Cine, CineVignette, LightLeaks, SWARAS } from "../cine";
+import { CameraRig, Glow, Scene3D, StarField } from "../three/core";
+import { GoldRing } from "../three/objects";
+import { CAPS, CREAM, DEVA, GOLD, SAFFRON, SERIF, tween } from "../theme";
+import { H, SCENES, W } from "../timeline";
 
-const LiveFootage: React.FC = () => {
-  // Frame inside this Sequence, mapped back to the absolute timeline
-  const frame = useCurrentFrame() + T.videoStart;
-  return (
-    <AbsoluteFill
-      style={{
-        // Gentle push-in after the hand-off, easing back out before the outro dissolve
-        scale: tween(
-          frame,
-          [
-            T.dissolveInEnd,
-            T.dissolveInEnd + 450,
-            T.dissolveOutStart - 300,
-            T.dissolveOutStart,
-          ],
-          [1, 1.05, 1.05, 1],
-          Easing.inOut(Easing.sin),
-        ),
-      }}
-    >
-      <Video
-        src={staticFile("source.mp4")}
-        trimBefore={T.videoStart}
-        muted
-        style={{
-          width: W,
-          height: H,
-          objectFit: "cover",
-          filter: "contrast(1.06) saturate(1.1) sepia(0.12)",
-        }}
-      />
-    </AbsoluteFill>
-  );
-};
+const [START, END] = SCENES.live;
+const VIDEO_END = END + 15; // runs a little under the outro flash
 
-export const LiveVideo: React.FC = () => (
-  <Sequence
-    from={T.videoStart}
-    durationInFrames={T.videoEnd - T.videoStart}
-    name="Live performance"
-  >
-    <LiveFootage />
-  </Sequence>
-);
+// Caption entries also trigger RGB-split glitch hits
+type Caption = { at: number; until: number; render: () => React.ReactNode };
 
-// Text moments in the live section; the rising glyphs clear out while these are up
-const MOMENTS = [
-  [2870, 3150],
-  [4490, 4770],
-  [5540, 5890],
+const CAPTIONS: Caption[] = [
+  {
+    at: 2850,
+    until: 3080,
+    render: () => (
+      <CaptionBlock top={1400}>
+        <Cine text="LIVE" at={2850} until={3080} mode="track" size={36} tracking={0.8} color={GOLD} />
+        <Cine text="AHIR BHAIRAV" at={2862} until={3080} mode="flip" size={100} gold weight={700} />
+      </CaptionBlock>
+    ),
+  },
+  ...[
+    { at: 3200, dev: "अलबेला", en: "ALABELA · THE CAREFREE ONE" },
+    { at: 3560, dev: "सजन", en: "SAJAN · THE BELOVED" },
+    { at: 3920, dev: "आयो रे", en: "AAYO RE · HAS ARRIVED" },
+  ].map(({ at, dev, en }) => ({
+    at,
+    until: at + 220,
+    render: () => (
+      <CaptionBlock top={1330}>
+        <Cine text={dev} at={at} until={at + 220} mode="blur" size={170} font={DEVA} weight={400} gold />
+        <Cine text={en} at={at + 20} until={at + 220} mode="track" size={34} tracking={0.32} style={{ marginTop: 6 }} />
+      </CaptionBlock>
+    ),
+  })),
+  {
+    at: 4300,
+    until: 4560,
+    render: () => (
+      <CaptionBlock top={1380}>
+        <Cine text="अलबेला सजन आयो रे" at={4300} until={4560} mode="blur" size={96} font={DEVA} weight={400} gold />
+        <Cine text="the charming beloved has arrived" at={4330} until={4560} mode="rise" size={58} font={SERIF} weight={500} italic tracking={0} />
+      </CaptionBlock>
+    ),
+  },
+  {
+    at: 4700,
+    until: 4920,
+    render: () => (
+      <CaptionBlock top={1360}>
+        <Cine text="A RAGA OF" at={4700} until={4920} mode="flip" size={100} gold weight={700} />
+        <Cine text="FIRST LIGHT" at={4716} until={4920} mode="flip" size={120} gold weight={700} />
+      </CaptionBlock>
+    ),
+  },
+  { at: 5050, until: 5330, render: () => <SwaraStrip at={5050} until={5330} /> },
+  {
+    at: 5450,
+    until: 5670,
+    render: () => (
+      <CaptionBlock top={1380}>
+        <Cine text="A MORNING" at={5450} until={5670} mode="flip" size={110} gold weight={700} />
+        <Cine text="PRAYER IN SOUND" at={5466} until={5670} mode="flip" size={84} gold weight={700} />
+      </CaptionBlock>
+    ),
+  },
+  {
+    at: 5800,
+    until: 6060,
+    render: () => (
+      <CaptionBlock top={1400}>
+        <Cine text="अलबेला सजन आयो रे" at={5800} until={6060} mode="blur" size={96} font={DEVA} weight={400} gold />
+        <Cine text="THE BELOVED HAS ARRIVED" at={5825} until={6060} mode="track" size={36} tracking={0.3} />
+      </CaptionBlock>
+    ),
+  },
+  {
+    at: 6150,
+    until: 6370,
+    render: () => (
+      <CaptionBlock top={1400}>
+        <Cine text="RAGA" at={6150} until={6370} mode="track" size={36} tracking={0.8} color={GOLD} />
+        <Cine text="AHIR BHAIRAV" at={6162} until={6370} mode="flip" size={100} gold weight={700} />
+      </CaptionBlock>
+    ),
+  },
 ];
 
-const quietness = (frame: number) =>
-  MOMENTS.reduce(
-    (q, [a, b]) =>
-      Math.min(
-        q,
-        1 -
-          tween(frame, [a - 20, a + 10], [0, 1]) *
-            tween(frame, [b - 10, b + 20], [1, 0]),
-      ),
-    1,
-  );
+const GLITCHES = CAPTIONS.map((c) => c.at);
+const FLARES = peaksBetween(START + 40, END - 40, 0.7, 150);
 
-// Swara glyphs rising in lanes along the frame edges, brighter when the voice swells
-const RisingSwaras: React.FC<{ opacity: number }> = ({ opacity }) => {
-  const frame = useCurrentFrame();
+// 0–1 strength of an RGB-split hit around each glitch frame
+const glitchAt = (frame: number) =>
+  GLITCHES.reduce((g, at) => {
+    const d = frame - at;
+    return d >= -4 && d <= 8 ? Math.max(g, 1 - Math.abs(d - 1) / 8) : g;
+  }, 0);
+
+const videoStyle: React.CSSProperties = { width: W, height: H, objectFit: "cover" };
+
+const Footage: React.FC = () => {
+  const frame = useCurrentFrame() + START;
+  const k = kickAt(frame);
   const level = rmsAt(frame);
-  const glyphs = ["सा", "रे", "ग", "म", "प", "ध", "नि"];
-  const lanes = [60, 150, 240, 860, 950, 1030];
+  const g = glitchAt(frame);
+  const zoom = 1.05 + 0.04 * k + tween(frame, [START, END], [0, 0.06]);
+  const shakeX = (Math.sin(frame * 1.7) * Math.sin(frame * 0.31) * 7 + (g > 0 ? (random(`gx${frame}`) - 0.5) * 40 * g : 0)) * (0.3 + k);
+  const shakeY = Math.cos(frame * 1.3) * Math.sin(frame * 0.23) * 7 * (0.3 + k);
+  const dx = 6 + g * 26;
   return (
-    <AbsoluteFill style={{ opacity: opacity * quietness(frame) }}>
-      {Array.from({ length: 10 }).map((_, i) => {
-        const period = 300 + random(`sw-${i}-p`) * 160;
-        const shifted = frame + random(`sw-${i}-o`) * period;
-        const cycle = Math.floor(shifted / period);
-        const t = (shifted % period) / period;
-        const r = (k: string) => random(`sw-${i}-${cycle}-${k}`);
-        const x = lanes[(i + cycle) % lanes.length] + (r("x") - 0.5) * 40;
-        const size = 46 + r("s") * 30;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: x,
-              top: 1500 - t * 1000,
-              translate: "-50% 0px",
-              fontFamily: DEVA,
-              fontSize: size,
-              color: GOLD,
-              rotate: `${Math.sin(frame * 0.03 + i) * 8}deg`,
-              opacity: Math.sin(Math.PI * t) * (0.15 + 0.5 * level),
-              textShadow:
-                "0 0 18px rgba(255,190,100,0.7), 0 2px 8px rgba(0,0,0,0.5)",
-            }}
-          >
-            {glyphs[Math.floor(r("g") * glyphs.length)]}
-          </div>
-        );
-      })}
+    <AbsoluteFill style={{ scale: `${zoom}`, translate: `${shakeX}px ${shakeY}px`, filter: `contrast(1.14) saturate(${1.18 + level * 0.1}) brightness(0.96)` }}>
+      <Video src={staticFile("source.mp4")} trimBefore={START} muted style={videoStyle} />
+      {g > 0 ? (
+        // Exact RGB split: red channel and cyan (green + blue) channels, offset and recombined
+        <AbsoluteFill style={{ isolation: "isolate", background: "#000" }}>
+          <AbsoluteFill style={{ translate: `${dx}px 0px` }}>
+            <Video src={staticFile("source.mp4")} trimBefore={START} muted style={{ ...videoStyle, filter: "url(#only-red)" }} />
+          </AbsoluteFill>
+          <AbsoluteFill style={{ translate: `${-dx}px ${g * 6}px`, mixBlendMode: "screen" }}>
+            <Video src={staticFile("source.mp4")} trimBefore={START} muted style={{ ...videoStyle, filter: "url(#only-cyan)" }} />
+          </AbsoluteFill>
+        </AbsoluteFill>
+      ) : null}
     </AbsoluteFill>
   );
 };
 
-// Soft dark pool behind live-section text, for contrast against bright footage
-const Backdrop: React.FC<{
-  at: number;
-  until: number;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}> = ({ at, until, x, y, w, h }) => {
+const ChannelFilters: React.FC = () => (
+  <svg width={0} height={0} style={{ position: "absolute" }}>
+    <filter id="only-red" colorInterpolationFilters="sRGB">
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" />
+    </filter>
+    <filter id="only-cyan" colorInterpolationFilters="sRGB">
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" />
+    </filter>
+  </svg>
+);
+
+// 3D layer over the footage: orbiting gold rings at stage level, depth dust and bokeh
+const Overlay3D: React.FC<{ frame: number }> = ({ frame }) => {
+  const local = frame - START;
+  const energy = rmsAt(frame);
+  const k = kickAt(frame);
+  return (
+    <Scene3D transparent bloom={0}>
+      <CameraRig position={[Math.sin(local / 300) * 0.6, 0, 10]} target={[0, 0, 0]} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[4, 8, 6]} intensity={2.5} color="#FFE2B0" />
+      <pointLight position={[0, -6, 2]} intensity={40 + energy * 60} color="#FF9A40" distance={30} />
+      <group position={[0, -5.2, -3]} rotation={[1.38, 0, Math.sin(local / 200) * 0.05]}>
+        {[4.2, 4.9, 5.7].map((r, i) => (
+          <group key={r} rotation={[0, 0, local * 0.004 * (i % 2 ? -1 : 1)]}>
+            <GoldRing radius={r * (1 + k * 0.03)} tube={0.03 + i * 0.012} energy={energy * 1.5} />
+          </group>
+        ))}
+      </group>
+      <group rotation={[0, local * 0.0015, 0]} position={[0, (local * 0.004) % 4, 0]}>
+        <StarField seed="live-dust" count={520} box={[18, 34, 18]} center={[0, -2, -2]} size={0.09} color="#FFD9A0" opacity={0.55 + energy * 0.4} />
+      </group>
+      {Array.from({ length: 12 }).map((_, i) => {
+        const r = (s: string) => random(`bokeh-${i}-${s}`);
+        const y = ((r("y") * 24 + local * (0.004 + r("v") * 0.01)) % 24) - 12;
+        return (
+          <Glow
+            key={i}
+            position={[(r("x") - 0.5) * 14, y, -4 - r("z") * 10]}
+            scale={1.4 + r("s") * 2.6}
+            color={r("c") > 0.5 ? "#FFB45E" : "#FF6A8A"}
+            opacity={0.14 + energy * 0.12}
+          />
+        );
+      })}
+    </Scene3D>
+  );
+};
+
+const SwaraStrip: React.FC<{ at: number; until: number }> = ({ at, until }) => {
   const frame = useCurrentFrame();
-  if (frame < at || frame > until + 20) return null;
+  if (frame < at - 1 || frame > until + 1) return null;
+  const b = bandsAt(frame);
+  const out = tween(frame, [until - 16, until], [1, 0]);
+  return (
+    <CaptionBlock top={1400}>
+      <Cine text="THE SWARAS" at={at} until={until} mode="track" size={34} tracking={0.6} color={GOLD} />
+      <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 26, perspective: 900, opacity: out }}>
+        {SWARAS.map((note, i) => {
+          const p = tween(frame, [at + 14 + i * 5, at + 38 + i * 5], [0, 1]);
+          const glow = Math.min(1, Math.pow((b[i * 2] + b[i * 2 + 1]) / 2, 2));
+          return (
+            <div key={i} style={{ textAlign: "center", opacity: p, transform: `rotateY(${(1 - p) * 90}deg) translateZ(${glow * 40}px)` }}>
+              <div
+                style={{
+                  fontFamily: DEVA,
+                  fontSize: 76,
+                  lineHeight: 1.1,
+                  color: note.komal ? SAFFRON : CREAM,
+                  filter: `drop-shadow(0 0 ${10 + glow * 30}px rgba(255,180,90,${0.4 + glow * 0.6})) drop-shadow(0 3px 8px rgba(0,0,0,0.7))`,
+                  scale: `${1 + glow * 0.2}`,
+                }}
+              >
+                {note.dev}
+              </div>
+              <div style={{ fontFamily: CAPS, fontSize: 20, letterSpacing: "0.2em", color: GOLD, marginTop: 8 }}>{note.lat}</div>
+            </div>
+          );
+        })}
+      </div>
+    </CaptionBlock>
+  );
+};
+
+// God rays falling from the upper right
+const GodRays: React.FC<{ opacity: number }> = ({ opacity }) => {
+  const frame = useCurrentFrame();
   return (
     <div
       style={{
         position: "absolute",
-        left: x - w / 2,
-        top: y - h / 2,
-        width: w,
-        height: h,
-        opacity:
-          tween(frame, [at, at + 30], [0, 1]) *
-          tween(frame, [until - 10, until + 20], [1, 0]),
+        left: W * 0.85 - 1400,
+        top: -260 - 1400,
+        width: 2800,
+        height: 2800,
+        mixBlendMode: "screen",
+        opacity: opacity * (0.55 + rmsAt(frame) * 0.45),
+        rotate: `${Math.sin(frame / 160) * 4}deg`,
         background:
-          "radial-gradient(ellipse closest-side, rgba(9,6,18,0.62) 0%, rgba(9,6,18,0.35) 55%, rgba(9,6,18,0) 100%)",
+          "repeating-conic-gradient(from 180deg, rgba(255,200,130,0) 0deg, rgba(255,200,130,0.16) 2.5deg, rgba(255,200,130,0) 6deg)",
+        maskImage: "radial-gradient(circle, black 0%, rgba(0,0,0,0.4) 35%, transparent 62%)",
+        WebkitMaskImage: "radial-gradient(circle, black 0%, rgba(0,0,0,0.4) 35%, transparent 62%)",
       }}
     />
   );
 };
 
-// Persistent raga badge, top-left
-const CornerBadge: React.FC = () => {
+export const Live: React.FC = () => {
   const frame = useCurrentFrame();
-  const start = 3150;
-  const end = 6330;
-  if (frame < start || frame > end) return null;
-  const o =
-    tween(frame, [start, start + 40], [0, 1]) *
-    tween(frame, [end - 40, end], [1, 0]);
-  return (
-    <>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: o,
-          background:
-            "radial-gradient(ellipse 560px 200px at 220px 140px, rgba(9,6,18,0.5) 0%, rgba(9,6,18,0) 100%)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 44,
-          top: 92,
-          display: "flex",
-          alignItems: "center",
-          gap: 18,
-          opacity: o,
-        }}
-      >
-        <Mandala
-          size={96}
-          progress={tween(frame, [start, start + 90], [0, 1])}
-          rotate={frame * 0.15}
-        />
-        <div>
-          <div
-            style={{
-              fontFamily: CAPS,
-              fontSize: 28,
-              letterSpacing: 8,
-              color: GOLD,
-              textShadow: SHADOW,
-            }}
-          >
-            AHIR BHAIRAV
-          </div>
-          <div
-            style={{
-              fontFamily: SERIF,
-              fontStyle: "italic",
-              fontSize: 34,
-              color: CREAM,
-              textShadow: SHADOW,
-            }}
-          >
-            Alabela Sajan Aayo Re
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const LowerThird: React.FC = () => {
-  const at = 2880;
-  const until = 3140;
-  return (
-    <div style={{ position: "absolute", left: 70, top: 1440 }}>
-      <Rule at={at} until={until} width={420} align="left" />
-      <Letters
-        text="LIVE · RAGA"
-        at={at + 8}
-        until={until}
-        stagger={2}
-        style={{
-          fontFamily: CAPS,
-          fontSize: 30,
-          letterSpacing: 12,
-          color: GOLD,
-          textShadow: SHADOW,
-        }}
-      />
-      <Letters
-        text="Ahir Bhairav"
-        at={at + 18}
-        until={until}
-        stagger={3}
-        style={{
-          fontFamily: SERIF,
-          fontWeight: 600,
-          fontSize: 116,
-          lineHeight: 1.05,
-          color: CREAM,
-          textShadow: SHADOW,
-        }}
-      />
-      <Reveal
-        at={at + 50}
-        until={until}
-        style={{
-          fontFamily: SERIF,
-          fontStyle: "italic",
-          fontSize: 46,
-          color: CREAM,
-          textShadow: SHADOW,
-        }}
-      >
-        Bandish — Alabela Sajan Aayo Re
-      </Reveal>
-    </div>
-  );
-};
-
-// Mid-song title moment
-const BandishMoment: React.FC = () => {
-  const frame = useCurrentFrame();
-  const at = 4500;
-  const until = 4760;
-  if (frame < at || frame > until + 1) return null;
-  return (
-    <>
-      <div
-        style={{
-          position: "absolute",
-          left: W / 2,
-          top: 1480,
-          translate: "-50% -50%",
-        }}
-      >
-        <Mandala
-          size={520}
-          progress={tween(frame, [at, at + 120], [0, 1])}
-          rotate={frame * 0.1}
-          opacity={0.4 * tween(frame, [until - 20, until], [1, 0])}
-        />
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: 1380,
-          textAlign: "center",
-        }}
-      >
-        <Wipe
-          at={at + 10}
-          until={until}
-          dur={50}
-          style={{
-            display: "inline-block",
-            fontFamily: DEVA,
-            fontSize: 104,
-            color: GOLD,
-            textShadow: `0 0 30px rgba(255,190,100,0.5), ${SHADOW}`,
-          }}
-        >
-          अलबेला सजन आयो रे
-        </Wipe>
-        <Reveal
-          at={at + 60}
-          until={until}
-          style={{
-            fontFamily: SERIF,
-            fontStyle: "italic",
-            fontSize: 48,
-            color: CREAM,
-            textShadow: SHADOW,
-            marginTop: 10,
-          }}
-        >
-          “the charming beloved has arrived”
-        </Reveal>
-      </div>
-    </>
-  );
-};
-
-// Sargam strip whose notes light up with the spectrum
-const SargamStrip: React.FC = () => {
-  const frame = useCurrentFrame();
-  const at = 5550;
-  const until = 5880;
-  if (frame < at || frame > until + 1) return null;
-  const b = bandsAt(frame);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: 1420,
-        textAlign: "center",
-      }}
-    >
-      <Letters
-        text="THE SWARAS OF AHIR BHAIRAV"
-        at={at}
-        until={until}
-        stagger={1}
-        style={{
-          fontFamily: CAPS,
-          fontSize: 28,
-          letterSpacing: 8,
-          color: GOLD,
-          textShadow: SHADOW,
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 6,
-          marginTop: 24,
-        }}
-      >
-        {SWARAS.map((note, i) => {
-          const glow = Math.min(1, Math.pow((b[i * 2] + b[i * 2 + 1]) / 2, 2));
-          return (
-            <Reveal key={i} at={at + 20 + i * 6} until={until} dy={40}>
-              <div
-                style={{
-                  scale: `${1 + glow * 0.18}`,
-                  opacity: 0.55 + glow * 0.45,
-                }}
-              >
-                <Swara note={note} size={70} glow={glow} />
-              </div>
-            </Reveal>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-export const LiveOverlays: React.FC = () => {
-  const frame = useCurrentFrame();
-  if (frame < T.dissolveInStart || frame > T.dissolveOutEnd) return null;
-  const g =
-    tween(frame, [2790, 2850], [0, 1]) * tween(frame, [6380, 6420], [1, 0]);
+  const inRange = frame >= START - 20 && frame < VIDEO_END;
+  if (!inRange) return null;
   return (
     <AbsoluteFill>
-      {/* Warm grade and framing */}
+      <ChannelFilters />
+      <Sequence from={START} durationInFrames={VIDEO_END - START} name="Live performance">
+        <Footage />
+      </Sequence>
+      {/* Orange-and-teal grade */}
       <AbsoluteFill
         style={{
-          opacity: g * 0.55,
           mixBlendMode: "soft-light",
-          background:
-            "linear-gradient(160deg, rgba(255,170,80,0.7) 0%, rgba(255,140,70,0.3) 45%, rgba(90,40,140,0.5) 100%)",
+          opacity: 0.7,
+          background: "linear-gradient(200deg, rgba(255,150,60,0.85) 0%, rgba(255,120,70,0.25) 45%, rgba(0,130,150,0.7) 100%)",
         }}
       />
-      <AbsoluteFill style={{ opacity: g }}>
-        <Vignette strength={0.55} />
-      </AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          opacity: g,
-          background:
-            "linear-gradient(to top, rgba(9,6,18,0.82) 0%, rgba(9,6,18,0) 34%), linear-gradient(to bottom, rgba(9,6,18,0.5) 0%, rgba(9,6,18,0) 14%)",
-        }}
-      />
-      <RisingSwaras opacity={g} />
-      <Dust count={26} seed="live" opacity={g} />
-      <TanpuraStrings y={1800} opacity={g * 0.8} />
-      <Backdrop at={2870} until={3140} x={330} y={1600} w={1000} h={520} />
-      <Backdrop at={4500} until={4760} x={540} y={1480} w={1150} h={480} />
-      <Backdrop at={5550} until={5880} x={540} y={1540} w={1150} h={460} />
-      <CornerBadge />
-      <LowerThird />
-      <BandishMoment />
-      <SargamStrip />
+      <GodRays opacity={0.6} />
+      <LightLeaks opacity={0.55} seed="live" />
+      <AbsoluteFill style={{ background: "linear-gradient(to top, rgba(5,3,12,0.88) 0%, rgba(5,3,12,0.45) 22%, rgba(5,3,12,0) 40%)" }} />
+      {frame >= START ? <Overlay3D frame={frame} /> : null}
+      {FLARES.map((at) => (
+        <AnamorphicFlare key={at} at={at - 12} y={360 + (at % 5) * 40} />
+      ))}
+      <CineVignette strength={0.6} />
+      {CAPTIONS.map((c) => (frame >= c.at - 1 && frame <= c.until + 1 ? <React.Fragment key={c.at}>{c.render()}</React.Fragment> : null))}
     </AbsoluteFill>
   );
 };
