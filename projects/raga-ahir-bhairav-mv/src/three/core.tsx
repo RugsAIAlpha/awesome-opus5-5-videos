@@ -75,6 +75,7 @@ export const CameraRig: React.FC<{ position: V3; target: V3; fov?: number; roll?
   return null;
 };
 
+const GL_SCALE = 0.75;
 const aberration = new THREE.Vector2(0.0016, 0.0009);
 
 // The post-processing passes attach one commit after the canvas mounts, so the first frame a tab
@@ -103,20 +104,22 @@ export const Scene3D: React.FC<{
   bloom?: number;
   transparent?: boolean;
 }> = ({ children, background, fog, bloom = 1.3, transparent = false }) => (
+  // Software WebGL is the render bottleneck, so the 3D layer is drawn at 75% and scaled up;
+  // captions and footage stay at full resolution on top of it.
   <ThreeCanvas
-    width={W}
-    height={H}
-    gl={{ antialias: true, alpha: transparent }}
+    width={W * GL_SCALE}
+    height={H * GL_SCALE}
+    gl={{ antialias: false, alpha: transparent }}
     camera={{ fov: 50, near: 0.1, far: 500, position: [0, 0, 10] }}
-    style={{ position: "absolute", inset: 0 }}
+    style={{ position: "absolute", left: 0, top: 0, scale: `${1 / GL_SCALE}`, transformOrigin: "0 0" }}
   >
     {background ? <color attach="background" args={[background]} /> : null}
     {fog ? <fog attach="fog" args={fog} /> : null}
     <Environment />
     {children}
     {bloom > 0 ? (
-      <EffectComposer>
-        <Bloom intensity={bloom} luminanceThreshold={0.55} luminanceSmoothing={0.3} mipmapBlur />
+      <EffectComposer multisampling={0}>
+        <Bloom intensity={bloom} luminanceThreshold={0.55} luminanceSmoothing={0.3} mipmapBlur resolutionScale={0.5} />
         <ChromaticAberration offset={aberration} radialModulation={false} modulationOffset={0} />
       </EffectComposer>
     ) : null}
