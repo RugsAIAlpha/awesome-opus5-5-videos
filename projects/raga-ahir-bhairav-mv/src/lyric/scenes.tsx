@@ -2,7 +2,7 @@ import { Video } from "@remotion/media";
 import React from "react";
 import { AbsoluteFill, Easing, random, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { rmsAt } from "../audio";
-import { CAPS, SERIF, tween } from "../theme";
+import { tween } from "../theme";
 import { H, W } from "../timeline";
 import { Boat, Bokeh, City, Disc, Diya, FlowLines, Lanterns, Musician, Rangoli, Ridge, Sea, Sky, Stars, Walker } from "./art";
 
@@ -16,7 +16,7 @@ export const LYRIC_SCENES = {
   city: [960, 1440],
   boat: [1440, 1920],
   spotlight: [1920, 2479],
-  dawnTitle: [2479, 2820],
+  dawn: [2479, 2820],
   photo: [2820, 3540],
   window: [3540, 4380],
   screen: [4380, 4920],
@@ -65,20 +65,6 @@ const Footage: React.FC<{ from: number; position?: string }> = ({ from, position
   </Sequence>
 );
 
-const titleStyle: React.CSSProperties = { position: "absolute", left: 0, right: 0, textAlign: "center", color: "#FFF7EA", textShadow: "0 2px 18px rgba(0,0,0,0.35)" };
-
-const Title: React.FC<{ at: number; until: number; top: number; kicker: string; title: string }> = ({ at, until, top, kicker, title }) => {
-  const frame = useCurrentFrame();
-  if (frame < at || frame > until) return null;
-  const o = tween(frame, [at, at + 30], [0, 1]) * tween(frame, [until - 24, until], [1, 0]);
-  return (
-    <div style={{ ...titleStyle, top, opacity: o, translate: `0px ${(1 - tween(frame, [at, at + 40], [0, 1])) * 24}px` }}>
-      <div style={{ fontFamily: CAPS, fontSize: 30, letterSpacing: "0.45em", opacity: 0.85 }}>{kicker}</div>
-      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 500, fontSize: 92, marginTop: 14 }}>{title}</div>
-    </div>
-  );
-};
-
 // ─── Intro: the alaap, before any words ──────────────────────────────────────
 
 const NightHill: React.FC = () => (
@@ -92,7 +78,6 @@ const NightHill: React.FC = () => (
         <Ridge seed="nh-far" y={1330} amp={30} freq={0.006} color="#3A4465" />
         <Ridge seed="nh-near" y={1440} amp={16} freq={0.004} color="#232A42" />
         <Walker x={540} y={1446} scale={1.5} phase={0} walking={false} lookUp={tween(t, [40, 160], [0, 1])} color="#141A2C" />
-        <Title at={30} until={330} top={300} kicker="RAGA AHIR BHAIRAV" title="alabela sajan aayo re" />
       </>
     )}
   </Scene>
@@ -233,10 +218,8 @@ const DawnBeach: React.FC<{ range: Range; sunFrom: number; sunTo: number; childr
   </Scene>
 );
 
-const DawnTitle: React.FC = () => (
-  <DawnBeach range={LYRIC_SCENES.dawnTitle} sunFrom={1150} sunTo={1040}>
-    {() => <Title at={2510} until={2805} top={420} kicker="RAGA AHIR BHAIRAV" title="alabela sajan aayo re" />}
-  </DawnBeach>
+const Dawn: React.FC = () => (
+  <DawnBeach range={LYRIC_SCENES.dawn} sunFrom={1150} sunTo={1040} />
 );
 
 // ─── Bandish: the live performance framed inside the story ──────────────────
@@ -465,7 +448,6 @@ const Meeting: React.FC = () => (
         <>
           <Walker x={tween(t, [0, meet], [120, 470], Easing.out(Easing.quad))} y={1530} scale={1.3} phase={t * 0.17} walking={walking} color="#1E1230" />
           <Walker x={tween(t, [0, meet], [960, 610], Easing.out(Easing.quad))} y={1530} scale={1.2} phase={t * 0.17 + 1.5} walking={walking} color="#1E1230" flip />
-          <Title at={6630} until={6941 + 30} top={420} kicker="RAGA AHIR BHAIRAV" title="alabela sajan aayo re" />
         </>
       );
     }}
@@ -479,7 +461,7 @@ export const LyricScenes: React.FC = () => (
     <NightCity />
     <CosmicBoat />
     <Spotlight />
-    <DawnTitle />
+    <Dawn />
     <PhotoInHands />
     <WindowAtDawn />
     <ProjectionRoom />

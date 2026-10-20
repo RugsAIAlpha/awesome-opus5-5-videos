@@ -2,7 +2,7 @@
 
 Two compositions:
 
-- **`RagaLyricVideo`** — an illustrated lyric video in a flat storybook style: silhouette figures, pastel skies with flowing wind streaks, and the live performance framed inside the scenes (a photo held in hands, an arched window above a rangoli, a projection screen, a tile panel, a moon portal). Word-by-word karaoke lyrics, the sung word highlighted in gold. Sources in `src/lyric/`.
+- **`RagaLyricVideo`** — an illustrated lyric video in a flat storybook style: silhouette figures, pastel skies with flowing wind streaks, and the live performance framed inside the scenes (a photo held in hands, an arched window above a rangoli, a projection screen, a tile panel, a moon portal). No on-screen text. Sources in `src/lyric/`; `Karaoke.tsx` (word-by-word lyrics) is kept but not mounted.
 - **`RagaAhirBhairav`** — the 3D/VFX cut described below.
 
 ### Lyric sync
