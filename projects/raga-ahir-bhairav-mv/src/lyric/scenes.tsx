@@ -25,20 +25,24 @@ export const LYRIC_SCENES = {
   outro: [6385, 6941],
 } as const;
 
-type Range = readonly [number, number];
+export type Range = readonly [number, number];
+export type SceneProps = { range?: Range; bare?: boolean };
 
 // Visible window plus fade-in and a slow camera push
-const Scene: React.FC<{ range: Range; first?: boolean; push?: number; origin?: string; children: (local: number) => React.ReactNode }> = ({
+const Scene: React.FC<{ range: Range; first?: boolean; bare?: boolean; push?: number; origin?: string; children: (local: number) => React.ReactNode }> = ({
   range,
   first,
+  bare,
   push = 0.05,
   origin = "50% 50%",
   children,
 }) => {
   const frame = useCurrentFrame();
   const [a, b] = range;
-  if (frame < a || frame >= b + FADE) return null;
+  if (frame < a || frame >= b + (bare ? 0 : FADE)) return null;
   const local = frame - a;
+  // Bare: no fade or camera push, for scenes printed on a collage card
+  if (bare) return <AbsoluteFill style={{ overflow: "hidden" }}>{children(local)}</AbsoluteFill>;
   return (
     <AbsoluteFill
       style={{
@@ -53,22 +57,23 @@ const Scene: React.FC<{ range: Range; first?: boolean; push?: number; origin?: s
   );
 };
 
-// The live performance, shown inside an illustrated frame
-const Footage: React.FC<{ from: number; position?: string }> = ({ from, position = "50% 32%" }) => (
+// The live performance, cover-fitted to its frame
+export const Footage: React.FC<{ from: number; position?: string }> = ({ from }) => (
   <Sequence from={from} layout="none" name="Footage">
     <Video
       src={staticFile("source.mp4")}
       trimBefore={from}
       muted
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: position }}
+      objectFit="cover"
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
     />
   </Sequence>
 );
 
 // ─── Intro: the alaap, before any words ──────────────────────────────────────
 
-const NightHill: React.FC = () => (
-  <Scene range={LYRIC_SCENES.nightHill} first origin="50% 70%">
+export const NightHill: React.FC<SceneProps> = ({ range = LYRIC_SCENES.nightHill, bare }) => (
+  <Scene range={range} bare={bare} first origin="50% 70%">
     {(t) => (
       <>
         <Sky id="sky-night" stops={[[0, "#27324F"], [0.55, "#56658A"], [1, "#8B98B4"]]} />
@@ -83,8 +88,8 @@ const NightHill: React.FC = () => (
   </Scene>
 );
 
-const DuskWalk: React.FC = () => (
-  <Scene range={LYRIC_SCENES.duskWalk}>
+export const DuskWalk: React.FC<SceneProps> = ({ range = LYRIC_SCENES.duskWalk, bare }) => (
+  <Scene range={range} bare={bare}>
     {(t) => (
       <>
         <Sky id="sky-dusk" stops={[[0, "#3A2961"], [0.55, "#B5719D"], [1, "#F2B8A2"]]} />
@@ -106,8 +111,8 @@ const DuskWalk: React.FC = () => (
   </Scene>
 );
 
-const NightCity: React.FC = () => (
-  <Scene range={LYRIC_SCENES.city}>
+export const NightCity: React.FC<SceneProps> = ({ range = LYRIC_SCENES.city, bare }) => (
+  <Scene range={range} bare={bare}>
     {(t) => (
       <>
         <Sky id="sky-city" stops={[[0, "#24125A"], [0.6, "#68299C"], [1, "#9B4DCA"]]} />
@@ -124,9 +129,9 @@ const NightCity: React.FC = () => (
   </Scene>
 );
 
-const CosmicBoat: React.FC = () => {
+export const CosmicBoat: React.FC<SceneProps> = ({ range = LYRIC_SCENES.boat, bare }) => {
   const frame = useCurrentFrame();
-  const t = frame - LYRIC_SCENES.boat[0];
+  const t = frame - range[0];
   // Organic blob outline that slowly breathes
   const pts: string[] = [];
   for (let k = 0; k <= 64; k++) {
@@ -135,7 +140,7 @@ const CosmicBoat: React.FC = () => {
     pts.push(`${(540 + Math.cos(a) * rad * 1.05).toFixed(1)},${(960 + Math.sin(a) * rad * 0.92).toFixed(1)}`);
   }
   return (
-    <Scene range={LYRIC_SCENES.boat}>
+    <Scene range={range} bare={bare}>
       {() => (
         <>
           <Sky id="sky-boat" stops={[[0, "#16133A"], [1, "#0F0D2A"]]} />
@@ -161,11 +166,11 @@ const CosmicBoat: React.FC = () => {
   );
 };
 
-const Spotlight: React.FC = () => {
+export const Spotlight: React.FC<SceneProps> = ({ range = LYRIC_SCENES.spotlight, bare }) => {
   const frame = useCurrentFrame();
   const beam = 0.28 + rmsAt(frame) * 0.16;
   return (
-    <Scene range={LYRIC_SCENES.spotlight} push={0.07} origin="50% 70%">
+    <Scene range={range} bare={bare} push={0.07} origin="50% 70%">
       {() => (
         <>
           <Sky id="sky-wall" stops={[[0, "#2B1D4F"], [1, "#1C1338"]]} />
@@ -194,8 +199,8 @@ const Spotlight: React.FC = () => {
   );
 };
 
-const DawnBeach: React.FC<{ range: Range; sunFrom: number; sunTo: number; children?: (t: number) => React.ReactNode }> = ({ range, sunFrom, sunTo, children }) => (
-  <Scene range={range} push={0.04}>
+const DawnBeach: React.FC<{ range: Range; bare?: boolean; sunFrom: number; sunTo: number; children?: (t: number) => React.ReactNode }> = ({ range, bare, sunFrom, sunTo, children }) => (
+  <Scene range={range} bare={bare} push={0.04}>
     {(t) => (
       <>
         <Sky id={`sky-dawn-${range[0]}`} stops={[[0, "#2B2E69"], [0.42, "#B86A8E"], [0.56, "#F4AE7C"], [0.6, "#FFD9AB"]]} />
@@ -218,8 +223,8 @@ const DawnBeach: React.FC<{ range: Range; sunFrom: number; sunTo: number; childr
   </Scene>
 );
 
-const Dawn: React.FC = () => (
-  <DawnBeach range={LYRIC_SCENES.dawn} sunFrom={1150} sunTo={1040} />
+export const Dawn: React.FC<SceneProps> = ({ range = LYRIC_SCENES.dawn, bare }) => (
+  <DawnBeach range={range} bare={bare} sunFrom={1150} sunTo={1040} />
 );
 
 // ─── Bandish: the live performance framed inside the story ──────────────────
@@ -235,12 +240,12 @@ const Hands: React.FC = () => (
   </svg>
 );
 
-const PhotoInHands: React.FC = () => {
+export const PhotoInHands: React.FC<SceneProps> = ({ range = LYRIC_SCENES.photo, bare }) => {
   const frame = useCurrentFrame();
-  const [a] = LYRIC_SCENES.photo;
+  const [a] = range;
   const breathe = 1 + rmsAt(frame) * 0.012;
   return (
-    <Scene range={LYRIC_SCENES.photo} push={0.06} origin="50% 55%">
+    <Scene range={range} bare={bare} push={0.06} origin="50% 55%">
       {(t) => (
         <>
           <Sky id="sky-photo" stops={[[0, "#14123A"], [1, "#1F1B52"]]} />
@@ -267,14 +272,14 @@ const PhotoInHands: React.FC = () => {
 
 const archPath = (x: number, y: number, w: number, h: number) => `M${x},${y + h} L${x},${y + w / 2} A${w / 2},${w / 2} 0 0 1 ${x + w},${y + w / 2} L${x + w},${y + h} Z`;
 
-const WindowAtDawn: React.FC = () => {
+export const WindowAtDawn: React.FC<SceneProps> = ({ range = LYRIC_SCENES.window, bare }) => {
   const frame = useCurrentFrame();
-  const [a] = LYRIC_SCENES.window;
+  const [a] = range;
   // The rangoli draws itself as "chauk puraao" is sung (118.2 s)
-  const rangoli = tween(frame, [3546, 3780], [0, 1], inOut);
+  const rangoli = tween(frame, [a + 6, a + 240], [0, 1], inOut);
   const win = { x: 210, y: 300, w: 660, h: 960 };
   return (
-    <Scene range={LYRIC_SCENES.window} push={0.05} origin="50% 45%">
+    <Scene range={range} bare={bare} push={0.05} origin="50% 45%">
       {(t) => (
         <>
           <Sky id="sky-wall2" stops={[[0, "#F6D2B4"], [0.7, "#EBAE8F"], [1, "#D98B6E"]]} />
@@ -319,12 +324,12 @@ const WindowAtDawn: React.FC = () => {
   );
 };
 
-const ProjectionRoom: React.FC = () => {
+export const ProjectionRoom: React.FC<SceneProps> = ({ range = LYRIC_SCENES.screen, bare }) => {
   const frame = useCurrentFrame();
-  const [a] = LYRIC_SCENES.screen;
+  const [a] = range;
   const flicker = 0.22 + rmsAt(frame) * 0.1 + Math.sin(frame * 0.9) * 0.015;
   return (
-    <Scene range={LYRIC_SCENES.screen} push={0.06} origin="50% 40%">
+    <Scene range={range} bare={bare} push={0.06} origin="50% 40%">
       {() => (
         <>
           <Sky id="sky-room" stops={[[0, "#150F2C"], [1, "#0B0818"]]} />
@@ -365,9 +370,9 @@ const Y0 = 120;
 const tileXY = (c: number, rr: number) => [X0 + c * (TILE + GAP) + TILE / 2, Y0 + rr * (TILE + GAP) + TILE / 2];
 const PATH: [number, number][] = [[0, 12], [0, 10], [2, 10], [2, 9], [5, 9], [5, 11], [6, 11], [6, 8], [3, 8], [3, 7]];
 
-const TilePath: React.FC = () => {
+export const TilePath: React.FC<SceneProps> = ({ range = LYRIC_SCENES.tiles, bare }) => {
   const frame = useCurrentFrame();
-  const [a, b] = LYRIC_SCENES.tiles;
+  const [a, b] = range;
   const draw = tween(frame, [a + 20, b - 60], [0, 1], inOut);
   const d = PATH.map(([c, rr], i) => {
     const [x, y] = tileXY(c, rr);
@@ -375,7 +380,7 @@ const TilePath: React.FC = () => {
   }).join(" ");
   const panel = { x: X0 + TILE + GAP, y: Y0 + 1 * (TILE + GAP), w: 5 * TILE + 4 * GAP, h: 6 * TILE + 5 * GAP };
   return (
-    <Scene range={LYRIC_SCENES.tiles} push={0.05} origin="50% 40%">
+    <Scene range={range} bare={bare} push={0.05} origin="50% 40%">
       {() => (
         <>
           <Sky id="sky-tiles" stops={[[0, "#111848"], [1, "#0B0F33"]]} />
@@ -405,13 +410,13 @@ const TilePath: React.FC = () => {
   );
 };
 
-const MoonPortal: React.FC = () => {
+export const MoonPortal: React.FC<SceneProps> = ({ range = LYRIC_SCENES.portal, bare }) => {
   const frame = useCurrentFrame();
-  const [a, b] = LYRIC_SCENES.portal;
+  const [a, b] = range;
   const rim = 0.6 + rmsAt(frame) * 0.4;
   const R = 360;
   return (
-    <Scene range={LYRIC_SCENES.portal} push={0.05} origin="50% 45%">
+    <Scene range={range} bare={bare} push={0.05} origin="50% 45%">
       {(t) => (
         <>
           <Sky id="sky-portal" stops={[[0, "#170F40"], [0.5, "#3B2878"], [0.66, "#6A4A9E"]]} />
@@ -432,15 +437,15 @@ const MoonPortal: React.FC = () => {
           <Sea top={1250} colors={["#2E2463", "#140F33"]} glint="#FFE6B0" />
           <Boat x={tween(t, [0, b - a], [150, 930], inOut)} y={1330 + Math.sin(t / 20) * 6} scale={0.7} tilt={Math.sin(t / 24) * 5} />
           {/* "Mangal gaao": lanterns rise as the celebration line is sung (188.2 s) */}
-          <Lanterns seed="ln" count={22} start={5646} />
+          <Lanterns seed="ln" count={22} start={a + 6} />
         </>
       )}
     </Scene>
   );
 };
 
-const Meeting: React.FC = () => (
-  <DawnBeach range={LYRIC_SCENES.outro} sunFrom={1060} sunTo={880}>
+export const Meeting: React.FC<SceneProps> = ({ range = LYRIC_SCENES.outro, bare }) => (
+  <DawnBeach range={range} bare={bare} sunFrom={1060} sunTo={880}>
     {(t) => {
       const meet = 330;
       const walking = t < meet;

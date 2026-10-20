@@ -1,6 +1,8 @@
 # Raga Ahir Bhairav — motion-graphics edit
 
-Two compositions:
+Three compositions:
+
+- **`RagaVox`** — Vox-style paper collage: the illustrated scenes and the live performance appear as prints sliding onto a wooden desk, pinned to a corkboard with red string and marker circles, taped to graph paper, on a CRT against an office wall, on a phone held in a hand, and as a halftone newspaper photo. Whip-in cuts with motion blur, punch zooms, stop-motion boil, grain plates and scanlines. Bandish cuts land on detected vocal phrases. No on-screen text. Sources in `src/vox/`; generate the textures first with `python3 tools/textures.py public/tex && python3 tools/wood.py public/tex/desk.jpg`.
 
 - **`RagaLyricVideo`** — an illustrated lyric video in a flat storybook style: silhouette figures, pastel skies with flowing wind streaks, and the live performance framed inside the scenes (a photo held in hands, an arched window above a rangoli, a projection screen, a tile panel, a moon portal). No on-screen text. Sources in `src/lyric/`; `Karaoke.tsx` (word-by-word lyrics) is kept but not mounted.
 - **`RagaAhirBhairav`** — the 3D/VFX cut described below.

@@ -3,3 +3,4 @@ out
 # Source footage and frames extracted from it stay local
 public/source.mp4
 public/*.jpg
+public/tex/
