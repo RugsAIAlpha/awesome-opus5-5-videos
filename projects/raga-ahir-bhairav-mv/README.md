@@ -1,5 +1,14 @@
 # Raga Ahir Bhairav — motion-graphics edit
 
+Two compositions:
+
+- **`RagaLyricVideo`** — an illustrated lyric video in a flat storybook style: silhouette figures, pastel skies with flowing wind streaks, and the live performance framed inside the scenes (a photo held in hands, an arched window above a rangoli, a projection screen, a tile panel, a moon portal). Word-by-word karaoke lyrics, the sung word highlighted in gold. Sources in `src/lyric/`.
+- **`RagaAhirBhairav`** — the 3D/VFX cut described below.
+
+### Lyric sync
+
+`tools/breaths.py` finds phrase boundaries at breath gaps in the vocal band; `src/lyric/lyrics.ts` places the alaap vowels and the bandish lines (*albela sajan aayo re*, *mora ati man sukh paayo ri*, *chauk puraao mangal gaao*, *man rang nisdin paayo ri*) on those phrases, with word timing weighted by syllables. Edit the table there to move a line.
+
 A Remotion project that adds motion graphics to a 1080×1920 music video, *Raga Ahir Bhairav — Alabela Sajan Aayo Re* (231 s, 30 fps). The footage is not committed; see Setup.
 
 ## What it does
@@ -36,6 +45,8 @@ python3 tools/analyze.py /tmp/audio.f32 src/audio.json
 The video is rendered without sound and the original soundtrack is muxed back in unchanged:
 
 ```bash
+npx remotion render RagaLyricVideo out/video.mp4 --codec=h264 --crf=18 --muted
+# or the 3D cut:
 npx remotion render RagaAhirBhairav out/video.mp4 --codec=h264 --crf=18 --muted --gl=angle
 ffmpeg -i out/video.mp4 -i public/source.mp4 -map 0:v -map 1:a -c:v copy -c:a copy -shortest out/final.mp4
 ```
